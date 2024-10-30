@@ -61,12 +61,10 @@ const GoogleSheetsData = () => {
   const handleTransformData = (sheetData) => {
     let arr1 = [];
     let arr2 = [];
-    sheetData.map((row, idx) => {
-      if (idx > 0) {
-        arr1.push(row[0]);
-        arr2.push(row[4]);
-      }
-    });
+    for(let i =1;i<sheetData.length;i++){
+      arr1.push(sheetData[i][0]);
+      arr2.push(sheetData[i][4]);
+    }
     setChartLabel(arr1);
     setChartData(arr2);
   };
