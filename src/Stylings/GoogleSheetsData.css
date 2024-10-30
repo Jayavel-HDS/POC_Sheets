@@ -1,0 +1,33 @@
+/* App.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .chart-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .chart-box {
+    flex: 1 1 45%; /* Set charts to take 45% width on larger screens */
+    min-width: 300px; /* Minimum width to ensure responsiveness */
+    max-width: 450px;
+  }
+  
+  .chart-box canvas {
+    width: 100% !important; /* Ensure the chart canvas takes full container width */
+    height: auto !important; /* Make height auto for responsiveness */
+  }
+  
+  /* For screens 768px and larger, place charts side by side */
+  @media (min-width: 768px) {
+    .chart-container {
+      flex-direction: row;
+    }
+  }
+  

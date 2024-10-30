@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { gapi } from 'gapi-script';
+import PieChart from './PieChart';
+import BarChart from './BarChart';
+import '../Stylings/GoogleSheetsData.css'
 
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 const API_KEY = process.env.REACT_APP_API_KEY;
 const SPREADSHEET_ID = process.env.REACT_APP_SPREADSHEET_ID;
+
 const rows = process.env.REACT_APP_Row;
 const columns = process.env.REACT_APP_Column;
-const RANGE =`Sheet1!${rows}:${columns}`;
-//const RANGE = 'Sheet1!A1:D10'; 
+
+const RANGE = `Sheet1!${rows}:${columns}`;
 
 const GoogleSheetsData = () => {
   const [data, setData] = useState([]);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [chartData, setChartData] = useState([]);
+  const [chartLabel, setChartLabel] = useState([]);
 
   useEffect(() => {
     function start() {
@@ -38,7 +44,6 @@ const GoogleSheetsData = () => {
   };
 
   const fetchData = () => {
-    console.log("Function starts")
     gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: RANGE,
@@ -46,15 +51,28 @@ const GoogleSheetsData = () => {
       const sheetData = response.result.values;
       if (sheetData && sheetData.length > 0) {
         setData(sheetData);
-        console.log(sheetData)
+        handleTransformData(sheetData);
       } else {
         console.log('No data found.');
       }
     }).catch(error => console.error('Error fetching data:', error));
   };
 
+  const handleTransformData = (sheetData) => {
+    let arr1 = [];
+    let arr2 = [];
+    sheetData.map((row, idx) => {
+      if (idx > 0) {
+        arr1.push(row[0]);
+        arr2.push(row[4]);
+      }
+    });
+    setChartLabel(arr1);
+    setChartData(arr2);
+  };
+
   return (
-    <div>
+    <div className="container">
       <h1>Google Sheets Data Display</h1>
       {isSignedIn ? (
         <>
@@ -64,6 +82,7 @@ const GoogleSheetsData = () => {
       ) : (
         <button onClick={signIn}>Sign In with Google</button>
       )}
+      
       <table border="1">
         <thead>
           <tr>
@@ -82,6 +101,17 @@ const GoogleSheetsData = () => {
           ))}
         </tbody>
       </table>
+      {chartData.length ? <div>
+      <h1>Task Completion Chart</h1>
+      <div className="chart-container">
+        <div className="chart-box">
+          <PieChart data={chartData} label={chartLabel} />
+        </div>
+        <div className="chart-box">
+          <BarChart data={chartData} label={chartLabel} />
+        </div>
+      </div>
+      </div> : <></>}
     </div>
   );
 };
