@@ -65,8 +65,9 @@ const GoogleSheetsData = () => {
       arr1.push(sheetData[i][0]);
       arr2.push(sheetData[i][4]);
     }
-    setChartLabel(arr1);
-    setChartData(arr2);
+    setChartLabel([].concat(arr1));
+    setChartData([].concat(arr2));
+    console.log(arr1,arr2,"Data-Label")
   };
 
   return (

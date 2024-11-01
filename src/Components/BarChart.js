@@ -5,7 +5,7 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Lege
 // Register the necessary components for a bar chart
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-const BarChart = ({ data ,label}) => {
+const BarChart = ({data ,label}) => {
   console.log(data,"data")
   const chartData = {
     labels: label,
