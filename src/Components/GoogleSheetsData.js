@@ -1,7 +1,6 @@
 // GoogleSheetsApp.js
 import React, { useState, useEffect, useRef } from 'react';
 import { gapi } from 'gapi-script';
-import { useReactToPrint } from 'react-to-print';
 import { Pie, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
