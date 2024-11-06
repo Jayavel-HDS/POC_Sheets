@@ -1,9 +1,9 @@
 import './App.css';
-import GoogleSheetsData from './Components/GoogleSheetsData';
+import GoogleSheetsApp from './Components/GoogleSheetsData';
 
 function App() {
   return (
-    <GoogleSheetsData/>
+    <GoogleSheetsApp/>
   );
 }
 
