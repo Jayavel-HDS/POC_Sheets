@@ -1,4 +1,3 @@
-// GoogleSheetsApp.js
 import React, { useState, useEffect, useRef } from 'react';
 import { gapi } from 'gapi-script';
 import { Pie, Bar } from 'react-chartjs-2';
@@ -13,15 +12,7 @@ import {
 } from 'chart.js';
 import '../Stylings/GoogleSheetsData.css';
 
-// Register Chart.js components
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement
-);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -31,9 +22,9 @@ const GoogleSheetsApp = () => {
   const [sheetNames, setSheetNames] = useState([]);
   const [activeSheet, setActiveSheet] = useState(null);
   const [sheetData, setSheetData] = useState([]);
-  const [sortOrder, setSortOrder] = useState('Asc');
+  const [defaultData, setDefaultData] = useState([]); // Store default data for reset
+  const [sortOrder, setSortOrder] = useState('Default');
 
-  // Reference for the table
   const tableRef = useRef();
 
   useEffect(() => {
@@ -73,8 +64,9 @@ const GoogleSheetsApp = () => {
         spreadsheetId: SPREADSHEET_ID,
         range: `${sheetName}`,
       });
-      setSheetData(response.result.values || []);
-      console.log(response.result.values, 'Response');
+      const data = response.result.values || [];
+      setSheetData(data);
+      setDefaultData(data); // Store the initial data
     } catch (error) {
       console.error(`Error fetching data for ${sheetName}:`, error);
     }
@@ -86,8 +78,20 @@ const GoogleSheetsApp = () => {
     }
   }, [activeSheet]);
 
-  const sortColumnB = () => {
+  const handleSortChange = (e) => {
+    const selectedSortOrder = e.target.value;
+    setSortOrder(selectedSortOrder);
+
+    if (selectedSortOrder === 'Default') {
+      setSheetData(defaultData); // Reset to original data
+    } else {
+      sortColumnB(selectedSortOrder);
+    }
+  };
+
+  const sortColumnB = (order) => {
     if (sheetData.length <= 1) return;
+
     const header = sheetData[0];
     const rows = sheetData.slice(1);
 
@@ -95,19 +99,17 @@ const GoogleSheetsApp = () => {
       const aValue = a[1] || '';
       const bValue = b[1] || '';
       if (!isNaN(aValue) && !isNaN(bValue)) {
-        return sortOrder === 'Asc' ? aValue - bValue : bValue - aValue;
+        return order === 'Asc' ? aValue - bValue : bValue - aValue;
       } else {
-        return sortOrder === 'Asc'
+        return order === 'Asc'
           ? aValue.toString().localeCompare(bValue)
           : bValue.toString().localeCompare(aValue);
       }
     });
 
     setSheetData([header, ...rows]);
-    setSortOrder(sortOrder === 'Asc' ? 'Desc' : 'Asc');
   };
 
-  // Extract chart data from column A and B if sheet is 'Attendance'
   const getChartData = () => {
     if (sheetData.length <= 1) return { labels: [], data: [], chartTitle: '' };
     const labels = sheetData.slice(1).map((row) => row[0] || '');
@@ -119,7 +121,6 @@ const GoogleSheetsApp = () => {
   const { labels, data, chartTitle } =
     activeSheet === 'Attendance' ? getChartData() : { labels: [], data: [], chartTitle: '' };
 
-  // Chart configurations
   const pieData = {
     labels,
     datasets: [
@@ -150,33 +151,21 @@ const GoogleSheetsApp = () => {
     ],
   };
 
-  // Chart options (optional customization)
   const pieOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: chartTitle,
-      },
+      legend: { position: 'top' },
+      title: { display: true, text: chartTitle },
     },
   };
 
   const barOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: chartTitle,
-      },
+      legend: { position: 'top' },
+      title: { display: true, text: chartTitle },
     },
   };
- 
 
   return (
     <div className="app">
@@ -195,22 +184,24 @@ const GoogleSheetsApp = () => {
       <main className="content">
         <div className="header">
           <h2>{activeSheet}</h2>
-          <button className="sort-button" onClick={sortColumnB}>
-            Sort {sortOrder === 'Asc' ? '↓' : '↑'}: {sortOrder === 'Asc' ? 'Desc' : 'Asc'}
-          </button>
+          <select value={sortOrder} onChange={handleSortChange} className="sort-dropdown">
+            <option value="Default">Default</option>
+            <option value="Asc">Asc</option>
+            <option value="Desc">Desc</option>
+          </select>
         </div>
 
         {activeSheet === 'Attendance' && sheetData.length > 1 && (
           <>
-          <h3>{sheetData[0][1] || 'Attendance Chart'}</h3>
-          <div className="charts-container">
-            <div className="chart">
-              <Pie data={pieData} options={pieOptions} />
+            <h3>{sheetData[0][1] || 'Attendance Chart'}</h3>
+            <div className="charts-container">
+              <div className="chart">
+                <Pie data={pieData} options={pieOptions} />
+              </div>
+              <div className="chart">
+                <Bar data={barData} options={barOptions} width={200} height={250}/>
+              </div>
             </div>
-            <div className="chart">
-              <Bar data={barData} options={barOptions} width={200} height={250}/>
-            </div>
-          </div>
           </>
         )}
 
