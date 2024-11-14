@@ -70,6 +70,32 @@ th, td {
   max-width: 500px; /* Optional max-width to control size */
 }
 
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-sort-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.filter-dropdown {
+  align-self: flex-start;
+  padding: 5px;
+  font-size: 1rem;
+}
+
+.sort-dropdown {
+  align-self: flex-end;
+  padding: 5px;
+  font-size: 1rem;
+}
+
+
 @media (max-width: 768px) {
   .app {
     flex-direction: column;

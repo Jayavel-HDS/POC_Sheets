@@ -22,9 +22,9 @@ const GoogleSheetsApp = () => {
   const [sheetNames, setSheetNames] = useState([]);
   const [activeSheet, setActiveSheet] = useState(null);
   const [sheetData, setSheetData] = useState([]);
-  const [defaultData, setDefaultData] = useState([]); // Store default data for reset
+  const [defaultData, setDefaultData] = useState([]);
   const [sortOrder, setSortOrder] = useState('Default');
-
+  const [filterValue, setFilterValue] = useState('All');
   const tableRef = useRef();
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const GoogleSheetsApp = () => {
       });
       const data = response.result.values || [];
       setSheetData(data);
-      setDefaultData(data); // Store the initial data
+      setDefaultData(data);
     } catch (error) {
       console.error(`Error fetching data for ${sheetName}:`, error);
     }
@@ -83,7 +83,7 @@ const GoogleSheetsApp = () => {
     setSortOrder(selectedSortOrder);
 
     if (selectedSortOrder === 'Default') {
-      setSheetData(defaultData); // Reset to original data
+      setSheetData(defaultData);
     } else {
       sortColumnB(selectedSortOrder);
     }
@@ -167,6 +167,27 @@ const GoogleSheetsApp = () => {
     },
   };
 
+  const handleFilterChange = (e) => {
+    const selectedFilterValue = e.target.value;
+    setFilterValue(selectedFilterValue);
+
+    // Extract date part from timestamp for filtering
+    if (selectedFilterValue === 'All') {
+      setSheetData(defaultData);
+    } else {
+      const filteredData = defaultData.filter((row, index) => {
+        // Skip header row
+        if (index === 0) return true;
+
+        // Extract date from the first column (assuming the timestamp is in the first column)
+        const dateValue = row[0]?.split(' ')[0]; // Get only the date part (e.g., "5/25/2024")
+        
+        return dateValue === selectedFilterValue;
+      });
+      setSheetData(filteredData);
+    }
+  };
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -175,7 +196,10 @@ const GoogleSheetsApp = () => {
           <button
             key={name}
             className={`sidebar-button ${activeSheet === name ? 'active' : ''}`}
-            onClick={() => setActiveSheet(name)}
+            onClick={() => {
+              setActiveSheet(name);
+              setFilterValue('All');
+            }}
           >
             {name}
           </button>
@@ -184,11 +208,32 @@ const GoogleSheetsApp = () => {
       <main className="content">
         <div className="header">
           <h2>{activeSheet}</h2>
-          <select value={sortOrder} onChange={handleSortChange} className="sort-dropdown">
-            <option value="Default">Default</option>
-            <option value="Asc">Asc</option>
-            <option value="Desc">Desc</option>
-          </select>
+          <div className="filter-sort-container">
+            <select
+              value={filterValue}
+              onChange={handleFilterChange}
+              className="filter-dropdown"
+            >
+              <option value="All">Show All</option>
+              {[...new Set(sheetData.slice(1).map((row) => row[0]?.split(' ')[0]))].map(
+                (date, index) => (
+                  <option key={index} value={date}>
+                    {date}
+                  </option>
+                )
+              )}
+            </select>
+
+            <select
+              value={sortOrder}
+              onChange={handleSortChange}
+              className="sort-dropdown"
+            >
+              <option value="Default">Default</option>
+              <option value="Asc">Asc</option>
+              <option value="Desc">Desc</option>
+            </select>
+          </div>
         </div>
 
         {activeSheet === 'Attendance' && sheetData.length > 1 && (
@@ -199,7 +244,7 @@ const GoogleSheetsApp = () => {
                 <Pie data={pieData} options={pieOptions} />
               </div>
               <div className="chart">
-                <Bar data={barData} options={barOptions} width={200} height={250}/>
+                <Bar data={barData} options={barOptions} width={200} height={250} />
               </div>
             </div>
           </>
